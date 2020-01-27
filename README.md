@@ -183,6 +183,13 @@ documented types include
 }
 ```
 
+#### cabal.publishPrivateMessage(text, recipientKey, cb)
+
+Write the private message string `text` to be encrypted so that only
+`recipientKey` (the public key of its recipient) can read it.
+
+A `timestamp` field is set automatically with the current local system time.
+
 ## License
 
 AGPLv3

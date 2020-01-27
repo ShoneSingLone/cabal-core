@@ -8,6 +8,7 @@ var sublevel = require('subleveldown')
 var crypto = require('hypercore-crypto')
 var url = require('url')
 var querystring = require('query-string')
+var {box} = require('./lib/crypto')
 var createChannelView = require('./views/channels')
 var createMembershipsView = require('./views/channel-membership')
 var createMessagesView = require('./views/messages')
@@ -141,6 +142,39 @@ Cabal.prototype.publish = function (message, opts, cb) {
     message.timestamp = message.timestamp || timestamp()
     feed.append(message, function (err) {
       cb(err, err ? null : message)
+    })
+  })
+}
+
+/**
+ * Publish a message to your feed, encrypted to specific recipient's key.
+ * @param {String} text - The textual message to publish.
+ * @param {String|Buffer[32]) recipientKey - A recipient's public key to encrypt the message to.
+ * @param {function} cb - When the message has been successfully written.
+ */
+Cabal.prototype.publishPrivateMessage = function (text, recipientKey, cb) {
+  if (!cb) cb = noop
+  if (typeof text !== 'string') return cb(new Error('text must be a string'))
+  if (!isHypercoreKey(recipientKey)) return cb(new Error('recipientKey must be a 32-byte hypercore key'))
+
+  if (typeof recipientKey === 'string') recipientKey = Buffer.from(recipientKey, 'hex')
+
+  this.feed(function (feed) {
+    const message = {
+      type: 'private/text',
+      content: {
+        text
+      },
+      timestamp: timestamp()
+    }
+    const ciphertext = box(Buffer.from(JSON.stringify(message)), [recipientKey])
+    const encryptedMessage = {
+      type: 'encrypted',
+      content: ciphertext
+    }
+
+    feed.append(encryptedMessage, function (err) {
+      cb(err, err ? null : encryptedMessage)
     })
   })
 }
