@@ -127,7 +127,7 @@ Cabal.prototype.getUser = function (key, cb) {
 
 /**
  * Publish a message to your feed.
- * @param {String} message - The message to publish.
+ * @param {Object} message - The message to publish.
  * @param {Object} opts - Options
  * @param {function} cb - When message has been successfully added.
  */
@@ -215,7 +215,6 @@ Cabal.prototype._addConnection = function (key) {
 Cabal.prototype._removeConnection = function (key) {
   this.emit('peer-dropped', key)
 }
-
 
 function generateKeyHex () {
   return crypto.keyPair().publicKey.toString('hex')
